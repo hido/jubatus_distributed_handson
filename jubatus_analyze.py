@@ -5,11 +5,9 @@ import argparse
 import pika
 import json
 import msgpackrpc
-
+from util import convert
 from anomaly import client
 from anomaly import types
-from jubatus.common.datum import Datum
-
 
 parser = argparse.ArgumentParser(description='jubatus anomaly analyze')
 parser.add_argument('--host', '-p', default = "localhost")
@@ -56,9 +54,8 @@ channel = connection.channel()
 channel.queue_declare(queue=args.queue)
 
 def callback(ch, method, properties, body):
-    id_, val_ = json.loads(body)
+    id_, datum_ = convert(body)
     # id_ not used
-    datum_ = Datum({"x":val_["x"],"y":val_["y"], "z":val_["z"]})
     score = analyze_jubatus(datum_)
     print score
 
