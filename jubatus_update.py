@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 
 import sys
+import argparse
 import pika
 import json
 import msgpackrpc
 from anomaly import client
 from anomaly import types
 from jubatus.common.datum import Datum
+
+parser = argparse.ArgumentParser(description='jubatus anomaly update')
+parser.add_argument('--host', '-p', default = "localhost")
+parser.add_argument('--user', '-u', default = "jubatus")
+parser.add_argument('--queue','-q', default = "sensor")
+args = parser.parse_args()
 
 NAME = "jubatus_anomaly"
 
@@ -39,9 +46,9 @@ def update_jubatus(datum_):
         anomaly_client.get_client().close()
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
-   host=sys.argv[1], credentials = pika.PlainCredentials('jubatus','jubatus')))
+   host=args.host, credentials = pika.PlainCredentials(args.user, args.user)))
 channel = connection.channel()
-channel.queue_declare(queue='sensor')
+channel.queue_declare(queue=args.queue)
 
 def callback(ch, method, properties, body):
     id_, val_ = json.loads(body)
@@ -49,5 +56,5 @@ def callback(ch, method, properties, body):
     datum_ = Datum({"x":val_["x"],"y":val_["y"], "z":val_["z"]})
     update_jubatus(datum_)
 
-channel.basic_consume(callback, queue='sensor', no_ack=True)
+channel.basic_consume(callback, queue=args.queue, no_ack=True)
 channel.start_consuming()
