@@ -5,6 +5,8 @@ from jubatus.common.datum import Datum
 
 def convert(body):
     id_, val_ = json.loads(body)
+    id_, body = body.split(" ")
+    val_ = json.loads(body)
     elements = {} 
     for key, value in val_.iteritems():
         elements[key.encode("utf-8")] = value
