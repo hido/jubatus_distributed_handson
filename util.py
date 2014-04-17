@@ -4,7 +4,6 @@ import json
 from jubatus.common.datum import Datum
 
 def convert(body):
-    id_, val_ = json.loads(body)
     id_, body = body.split(" ")
     val_ = json.loads(body)
     elements = {} 
