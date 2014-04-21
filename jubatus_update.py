@@ -11,8 +11,7 @@ from anomaly import types
 
 parser = argparse.ArgumentParser(description='jubatus anomaly update')
 parser.add_argument('--host', '-p', default = "localhost")
-parser.add_argument('--user', '-u', default = "jubatus")
-parser.add_argument('--queue','-q', default = "sensor")
+parser.add_argument('--stream','-T', default = "normal")
 args = parser.parse_args()
 
 NAME = "jubatus_anomaly"
@@ -46,14 +45,14 @@ def update_jubatus(datum_):
         anomaly_client.get_client().close()
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
-   host=args.host, credentials = pika.PlainCredentials(args.user, args.user)))
+   host=args.host, credentials = pika.PlainCredentials("jubatus", "jubatus")))
 channel = connection.channel()
-channel.queue_declare(queue=args.queue)
+channel.queue_declare(queue=args.stream)
 
 def callback(ch, method, properties, body):
     id_, datum_ = convert(body)
-    # id_ not used
     update_jubatus(datum_)
+    print "update succeeded (ID: " + str(id_) + ")"
 
-channel.basic_consume(callback, queue=args.queue, no_ack=True)
+channel.basic_consume(callback, queue=args.stream, no_ack=True)
 channel.start_consuming()
